@@ -1,0 +1,67 @@
+name: deploy packstack
+on: [push, pull_request]
+
+env:
+
+  TESTS_TIMEOUT: 5 # in minutes
+
+jobs:
+  check:
+    name: build and deploy packstack
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+    
+    - name: Build packstack container
+      run: |
+
+        cd ${GITHUB_WORKSPACE}/
+        docker build -t packstack .
+
+    - name: install NFS server for cinder
+      run: |
+
+        sudo apt install nfs-kernel-server -y
+        sudo mkdir -p /home/nfsshare
+        sudo chown -R nobody:nogroup /home/nfsshare
+        sudo chmod 777 /home/nfsshare
+        sudo bash -c 'echo "/home/nfsshare  *(insecure,rw,no_root_squash)" >>/etc/exports'
+        sudo exportfs -a
+        sudo systemctl restart nfs-kernel-server
+        sleep 4
+       
+
+    - name: run packstack container
+      run: |
+        cd ${GITHUB_WORKSPACE}/
+
+        export ext_ip=$(ip route get 8.8.8.8 | awk '{ print $7 }' | head -1)
+        mkdir -p artifacts/
+
+        docker run --name packstack \
+          --tty  --cap-add ALL \
+          --privileged \
+          --security-opt seccomp=unconfined \
+           -v /lib/modules/:/lib/modules/ \
+           -v $(pwd)/artifacts:/var/tmp/packstack/ \
+           --cgroup-parent=docker.slice \
+          -e EXTERNAL_IP="$ext_ip" \
+          -v $(pwd):/src \
+          -d packstack 
+        
+        sleep 3
+
+     
+    - name: deploy packstack 
+      run: |
+        cd ${GITHUB_WORKSPACE}/
+        docker exec -t packstack bash -x /deploy-packstack.sh
+
+    - name: push to quay
+      run: |
+        docker commit packstack packstack-deployed
+        docker tag packstack-deployed quay.io/kubev2v/packstack:latest
+        echo ${{ secrets.QUAY_PASSWORD }} | docker login -u ${{ secrets.QUAY_USERNAME }} --password-stdin quay.io
+        docker push quay.io/kubev2v/packstack:latest
