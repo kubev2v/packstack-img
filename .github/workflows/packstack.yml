@@ -1,8 +1,7 @@
 name: deploy packstack
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
-
   TESTS_TIMEOUT: 5 # in minutes
 
 jobs:
