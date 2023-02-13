@@ -59,10 +59,16 @@ jobs:
         cd ${GITHUB_WORKSPACE}/
         docker exec -t packstack bash -x /deploy-packstack.sh
 
+    - name: Login to quay.io with bot account
+        uses: docker/login-action@v2
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+
     - name: push to quay
       run: |
         docker commit packstack packstack-deployed
         docker tag packstack-deployed quay.io/kubev2v/packstack:latest
-        echo ${{ secrets.QUAY_PASSWORD }} | docker login -u ${{ secrets.QUAY_USERNAME }} --password-stdin quay.io
         docker push quay.io/kubev2v/packstack:latest
 
