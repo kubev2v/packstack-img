@@ -1,5 +1,5 @@
 name: deploy packstack
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
 
@@ -65,3 +65,4 @@ jobs:
         docker tag packstack-deployed quay.io/kubev2v/packstack:latest
         echo ${{ secrets.QUAY_PASSWORD }} | docker login -u ${{ secrets.QUAY_USERNAME }} --password-stdin quay.io
         docker push quay.io/kubev2v/packstack:latest
+
