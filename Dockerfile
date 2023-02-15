@@ -20,6 +20,10 @@ RUN dnf install -y openstack-packstack net-tools iproute
 RUN dnf install -y openssh-server procps-ng audit policycoreutils kmod wget lvm2 socat
 RUN systemctl enable sshd
 
+# locking to specific libvirt version due to https://github.com/kubev2v/packstack-img/issues/5
+RUN dnf install python3-dnf-plugin-versionlock -y 
+RUN dnf versionlock libvirt-daemon-8.0.0-10.* libvirt-daemon-config-nwfilter-8.0.0-10.*
+
 
 # Copy answer file
 ADD files/packstack.answer /packstack.answer
