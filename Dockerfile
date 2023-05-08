@@ -14,6 +14,7 @@ RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
   /lib/systemd/system/systemd-update-utmp*
 
 RUN dnf update -y
+RUN dnf install 'dnf-command(config-manager)' -y
 RUN dnf config-manager --enable powertools
 RUN dnf install -y centos-release-openstack-yoga
 RUN dnf install -y openstack-packstack net-tools iproute
@@ -24,6 +25,8 @@ RUN systemctl enable sshd
 RUN dnf install python3-dnf-plugin-versionlock -y 
 RUN dnf versionlock libvirt-daemon-8.0.0-10.* libvirt-daemon-config-nwfilter-8.0.0-10.*
 
+# install httpd ssl module 
+RUN dnf install mod_ssl -y
 
 # Copy answer file
 ADD files/packstack.answer /packstack.answer
