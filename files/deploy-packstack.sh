@@ -18,4 +18,10 @@ packstack --answer-file=/packstack.answer
 nova-manage cell_v2 discover_hosts
 
 
+#disable iptables firewall
+iptables --flush
+iptables-save >/etc/sysconfig/iptables
+
+
+echo "LoadModule ssl_module modules/mod_ssl.so" >> /etc/httpd/conf.modules.d/00-ssl.conf
 echo "LoadModule socache_shmcb_module  modules/mod_socache_shmcb.so" >> /etc/httpd/conf.modules.d/00-ssl.conf
